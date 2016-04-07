@@ -49,6 +49,15 @@ public class DBUtils {
     public static final String BLEPN_DESC = "desc";
     public static final String BLEPN_BT_PRESENT = "bt_present";
 
+    //BLE Phase table
+    public static final String BLEPHASE_TABLE = "get_intx_xing_phase";
+    public static final String BLEPHASE_INTX_ID ="intxid";
+    public static final String BLEPHASE_MAC = "mac";
+    public static final String BLEPHASE_DIR = "dir";
+    public static final String BLEPHASE_PHASE="phase";
+
+    //BLEWalkTime
+    public static  final String BLE_TIME_PHASE_TABLE = "get_signal_state";
     public static final int INTX = 1;
     public static final int CONS = 0;
 }

@@ -22,10 +22,12 @@ public class AlarmReceiver extends BroadcastReceiver {
             DbDownloader downloadPeds = new DbDownloader(context, DBUtils.BLEPN_TABLE);
             DbDownloader downloadFlags = new DbDownloader(context, DBUtils.BLEFLAG_TABLE);
             DbDownloader downloadTags = new DbDownloader(context, DBUtils.BLETAG_TABLE);
+            DbDownloader downloadPhases = new DbDownloader(context, DBUtils.BLEPHASE_TABLE);
             //***** Download all the tables and update local database****//
             downloadFlags.start();
             downloadPeds.start();
             downloadTags.start();
+            downloadPhases.start();
         }
 
     }

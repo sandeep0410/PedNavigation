@@ -12,6 +12,7 @@ import java.util.List;
 import edu.umn.pednavigation.LogUtils;
 import edu.umn.pednavigation.dto.BLEFlag;
 import edu.umn.pednavigation.dto.BLEPed;
+import edu.umn.pednavigation.dto.BLEPhase;
 import edu.umn.pednavigation.dto.BLETag;
 
 /**
@@ -128,6 +129,22 @@ public class DBSQLiteHelper extends SQLiteOpenHelper {
                 .append(" INTEGER, ")
                 .append(DBUtils.BLETAG_FILEPATH)
                 .append(" TEXT);");
+        db.execSQL(sb.toString());
+        sb.setLength(0);
+        //create Table for BLE Phase
+        sb.append("CREATE TABLE ")
+                .append(DBUtils.BLEPHASE_TABLE)
+                .append(" (")
+                .append(KEY_ID)
+                .append(" INTEGER PRIMARY KEY AUTOINCREMENT, ")
+                .append(DBUtils.BLEPHASE_INTX_ID)
+                .append(" TEXT, ")
+                .append(DBUtils.BLEPHASE_MAC)
+                .append(" TEXT, ")
+                .append(DBUtils.BLEPHASE_DIR)
+                .append(" TEXT, ")
+                .append(DBUtils.BLEPHASE_PHASE)
+                .append(" INTEGER);");
         db.execSQL(sb.toString());
     }
 
@@ -359,6 +376,56 @@ public class DBSQLiteHelper extends SQLiteOpenHelper {
                 bt.setStreetinfo4(cursor.getString(23));
                 bt.setDesc(cursor.getString(24));
                 bt.setBt_present(Integer.parseInt(cursor.getString(25)));
+            } while (cursor.moveToNext());
+        }
+        LogUtils.log("printing after query: " + bt);
+        return bt;
+    }
+    ////////////////////////BLE Phase Data Functions/////////////////////
+    public void addBLEPhaseData(BLEPhase phase) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DBUtils.BLEPHASE_INTX_ID, phase.getIntx_id());
+        values.put(DBUtils.BLEPHASE_MAC, phase.getMac());
+        values.put(DBUtils.BLEPHASE_DIR, phase.getDir());
+        values.put(DBUtils.BLEPHASE_PHASE, phase.getPhase());
+        db.insert(DBUtils.BLEPHASE_TABLE, null, values);
+    }
+
+
+    public List<BLEPhase> getAllBLEPhaseData() {
+        List<BLEPhase> blePhases = new ArrayList<BLEPhase>();
+        String selectQuery = "SELECT *FROM " + DBUtils.BLEPHASE_TABLE;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            do {
+                BLEPhase bt = new BLEPhase();
+                bt.setIntx_id(cursor.getString(1));
+                bt.setMac(cursor.getString(2));
+                bt.setDir(cursor.getString(3));
+                bt.setPhase(cursor.getInt(4));
+                blePhases.add(bt);
+            } while (cursor.moveToNext());
+        }
+        return blePhases;
+    }
+
+
+    public BLEPhase getBlePhase(String address, String dir) {
+        String query = "SELECT * FROM " + DBUtils.BLEPHASE_TABLE + " WHERE " + DBUtils.BLEPHASE_MAC + " LIKE '%" + address + "%'" +" AND "+DBUtils.BLEPHASE_DIR + " LIKE '%" + dir + "%'";
+        LogUtils.log("printing query: " + query);
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+        BLEPhase bt = null;
+
+        if (cursor.moveToFirst()) {
+            do {
+                bt = new BLEPhase();
+                bt.setIntx_id(cursor.getString(1));
+                bt.setMac(cursor.getString(2));
+                bt.setDir(cursor.getString(3));
+                bt.setPhase(cursor.getInt(4));
             } while (cursor.moveToNext());
         }
         LogUtils.log("printing after query: " + bt);

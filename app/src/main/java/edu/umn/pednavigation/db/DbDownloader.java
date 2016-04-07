@@ -20,6 +20,7 @@ import edu.umn.pednavigation.LocationService;
 import edu.umn.pednavigation.LogUtils;
 import edu.umn.pednavigation.dto.BLEFlag;
 import edu.umn.pednavigation.dto.BLEPed;
+import edu.umn.pednavigation.dto.BLEPhase;
 import edu.umn.pednavigation.dto.BLETag;
 
 /**
@@ -86,11 +87,43 @@ public class DbDownloader extends Thread {
                         printFlagData(db);
                     }
                     break;
+                case DBUtils.BLEPHASE_TABLE:
+                    List<BLEPhase> blephase = parsePhase(data);
+                    if (null != blephase) {
+                        db.deleteAll(table);
+                        LogUtils.log("BTprinting after first delete");
+                        printFlagData(db);
+                        for (BLEPhase bt : blephase) {
+                            db.addBLEPhaseData(bt);
+                        }
+                        LogUtils.log("BTprinting after dataa addition");
+                        printPhaseData(db);
+                    }
+                    break;
                 default:
                     break;
             }
         }
 
+    }
+
+    private void printPhaseData(DBSQLiteHelper db) {
+        List<BLEPhase> arr = db.getAllBLEPhaseData();
+        for (BLEPhase w : arr) {
+            LogUtils.log(w.toString());
+        }
+    }
+
+    private List<BLEPhase> parsePhase(String data) {
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<BLEPhase>>() {
+        }.getType();
+        List<BLEPhase> pojoList = gson.fromJson(data, listType);
+        if (pojoList == null) {
+            LogUtils.log("null list");
+            return null;
+        }
+        return pojoList;
     }
 
     private List<BLEPed> parsePed(String data) {
