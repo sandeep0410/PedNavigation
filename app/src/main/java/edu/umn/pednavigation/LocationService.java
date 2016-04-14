@@ -154,7 +154,7 @@ public class LocationService extends Service {
             }
             //LogUtils.log("Location Update received");
             //startScan
-            if (NavigationActivity.getInstance() == null && location.getSpeed() > MAX_SPEED && !BLEScanner.getInstance(getApplicationContext()).isScanning())
+            if (NavigationActivity.getInstance() == null && location.getSpeed() < MAX_SPEED && !BLEScanner.getInstance(getApplicationContext()).isScanning())
                 BLEScanner.getInstance(getApplicationContext()).scanLeDevice(true);
         }
 

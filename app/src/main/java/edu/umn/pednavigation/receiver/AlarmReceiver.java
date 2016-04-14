@@ -4,6 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import edu.umn.pednavigation.LogUtils;
 import edu.umn.pednavigation.Util;
 import edu.umn.pednavigation.db.DBUtils;
@@ -19,15 +23,20 @@ public class AlarmReceiver extends BroadcastReceiver {
         if (intent.getAction()!=null && intent.getAction().equals("edu.umn.pednavigation.DOWNLOAD.START"))
             LogUtils.log("Received Broadcast");
         if (Util.isOnline(context)) {
-            DbDownloader downloadPeds = new DbDownloader(context, DBUtils.BLEPN_TABLE);
+            ExecutorService pool = Executors.newSingleThreadExecutor();
+            pool.submit(new DbDownloader(context, DBUtils.BLEPN_TABLE));
+            pool.submit(new DbDownloader(context, DBUtils.BLEFLAG_TABLE));
+            pool.submit(new DbDownloader(context, DBUtils.BLETAG_TABLE));
+            pool.submit(new DbDownloader(context, DBUtils.BLEPHASE_TABLE));
+/*            DbDownloader downloadPeds = new DbDownloader(context, DBUtils.BLEPN_TABLE);
             DbDownloader downloadFlags = new DbDownloader(context, DBUtils.BLEFLAG_TABLE);
             DbDownloader downloadTags = new DbDownloader(context, DBUtils.BLETAG_TABLE);
             DbDownloader downloadPhases = new DbDownloader(context, DBUtils.BLEPHASE_TABLE);
-            //***** Download all the tables and update local database****//
+            /*//***** Download all the tables and update local database****//*/
             downloadFlags.start();
             downloadPeds.start();
             downloadTags.start();
-            downloadPhases.start();
+            downloadPhases.start();*/
         }
 
     }

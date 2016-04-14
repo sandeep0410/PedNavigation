@@ -22,13 +22,13 @@ public class Util {
     public static String getDir(int direction){
         String dir = "none";
         if(direction >=345 || direction <=15)
-            dir = "north";
+            dir = "North";
         else if (direction >=75 && direction <=105)
-            dir = "east";
+            dir = "East";
         else if(direction>=165 && direction<=195)
-            dir="south";
+            dir="South";
         else if(direction >=255 && direction <=285)
-            dir="west";
+            dir="West";
         return dir;
     }
 

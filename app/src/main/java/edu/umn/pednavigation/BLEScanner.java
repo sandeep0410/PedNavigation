@@ -74,8 +74,11 @@ public class BLEScanner {
         if (device != null) {
             DBSQLiteHelper db = DBSQLiteHelper.getInstance(mContext);
             BLEFlag ble = db.getBleFlag(device.getDevice().getAddress());
+            if(ble==null)
+                return;
             Intent i = new Intent(mContext, NavigationActivity.class);
             i.putExtra("bleAddress", device.getDevice().getAddress());
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             if (ble.getFlag() == DBUtils.CONS) {
                 speak(device);
                 i.putExtra("flag", DBUtils.CONS);

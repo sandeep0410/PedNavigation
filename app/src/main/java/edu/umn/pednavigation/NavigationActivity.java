@@ -62,6 +62,7 @@ public class NavigationActivity extends Activity implements SensorEventListener,
     String address = null;
     TextView timer;
     TextView direction;
+    RelativeLayout parentlayout;
     int stopTime = 60;
     private static NavigationActivity _instance;
     SensorManager sm;
@@ -103,6 +104,7 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         TextView mode = (TextView) findViewById(R.id.mode);
         timer = (TextView) findViewById(R.id.timer);
         direction = (TextView) findViewById(R.id.direction);
+        parentlayout = (RelativeLayout) findViewById(R.id.layout);
         timer.setText(String.valueOf(stopTime));
         Intent intent = getIntent();
         flag = intent.getIntExtra("flag", -1);
@@ -110,7 +112,6 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         if (flag == DBUtils.INTX) {
             initializeMaps();
         }
-        RelativeLayout layout = (RelativeLayout) findViewById(R.id.layout);
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -195,12 +196,14 @@ public class NavigationActivity extends Activity implements SensorEventListener,
             speak(ble.getMessage());
         } else if (flag == DBUtils.INTX) {
             String curDir = getCurrentDirection();
+            for (Map.Entry entry : directionTimer.entrySet())
+                LogUtils.log("Double click: " + entry.getKey() + ": " + entry.getValue());
             if (directionTimer.containsKey(curDir)) {
                 int time = directionTimer.get(curDir);
                 if (time < 0)
                     speak("Please Wait. The walk signal will appear in sometime.");
                 else
-                    speak("Walk singal. Signal turns off in " + time + " seconds");
+                    speak("Walk signal. Signal turns off in " + time + " seconds");
             } else
                 speak("Please align yourslef and double tap again.");
         }
@@ -239,7 +242,7 @@ public class NavigationActivity extends Activity implements SensorEventListener,
      * } catch (IOException e) {
      * e.printStackTrace();
      * }
-     * <p/>
+     * <p>
      * }
      * });
      * t.start();
@@ -273,7 +276,6 @@ public class NavigationActivity extends Activity implements SensorEventListener,
 
     @Override
     protected void onResume() {
-        super.onResume();
         super.onResume();
         sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
         sm.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
@@ -427,6 +429,18 @@ public class NavigationActivity extends Activity implements SensorEventListener,
                     }
                 }
 
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String dir = getCurrentDirection();
+                        if (directionTimer.get(dir)!=null && directionTimer.get(dir) != -1)
+                            parentlayout.setBackgroundColor(getResources().getColor(R.color.green));
+                        else
+                            parentlayout.setBackgroundColor(getResources().getColor(R.color.red));
+                    }
+                });
+                for (Map.Entry entry : directionPhase.entrySet())
+                    LogUtils.log("Phase direction: " + entry.getKey() + " : " + entry.getValue());
             }
         }
     }
@@ -454,6 +468,7 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         public void run() {
             if (intx_id != null) {
                 String url = "http://128.101.111.92:8080/Pedestrian/pedestrian?table=get_signal_state&intx_id=" + intx_id + "&phase=" + phase;
+                LogUtils.log(url);
                 HttpURLConnection urlConnection = null;
                 try {
                     urlConnection = (HttpURLConnection) new URL(url.toString()).openConnection();
@@ -469,6 +484,8 @@ public class NavigationActivity extends Activity implements SensorEventListener,
                     }
                     String data = sb.toString();
                     directionTimer.put(dir, Integer.parseInt(data));
+                    for (Map.Entry entry : directionTimer.entrySet())
+                        LogUtils.log("Thread: " + entry.getKey() + ": " + entry.getValue());
                     System.out.println(data);
                     urlConnection.disconnect();
                 } catch (IOException e) {
