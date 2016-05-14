@@ -25,8 +25,16 @@ public class Util {
             dir = "North";
         else if (direction >=75 && direction <=105)
             dir = "East";
+        else if (direction >=30 && direction <=60)
+            dir = "Northeast";
+        else if (direction >=120 && direction <=150)
+            dir = "Southeast";
         else if(direction>=165 && direction<=195)
             dir="South";
+        else if (direction >=210 && direction <=240)
+            dir = "Southwest";
+        else if (direction >=300 && direction <=330)
+            dir = "Northwest";
         else if(direction >=255 && direction <=285)
             dir="West";
         return dir;

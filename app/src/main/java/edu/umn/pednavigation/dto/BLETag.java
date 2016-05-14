@@ -4,32 +4,27 @@ package edu.umn.pednavigation.dto;
  * Created by Sandeep on 10/3/2015.
  */
 public class BLETag {
-    int workzoneID;
     String bleMac;
     double lat;
     double lon;
-    int speedLimit;
-    String message;
-    int flag;
-    String fileName;
+    String streetinfo1;
+    String streetinfo2;
+    String streetinfo31;
+    String streetinfo32;
+    String streetinfo4;
 
-    public BLETag(int workzoneID, String bleMac, double lat, double lon, int speedLimit, String message, int flag, String fileName) {
-        this.workzoneID = workzoneID;
+    public BLETag() {
+    }
+
+    public BLETag(String bleMac, double lat, double lon, String streetinfo1, String streetinfo2, String streetinfo31, String streetinfo32, String streetinfo4) {
         this.bleMac = bleMac;
         this.lat = lat;
         this.lon = lon;
-        this.speedLimit = speedLimit;
-        this.message = message;
-        this.flag = flag;
-        this.fileName = fileName;
-    }
-
-    public int getWorkzoneID() {
-        return workzoneID;
-    }
-
-    public void setWorkzoneID(int workzoneID) {
-        this.workzoneID = workzoneID;
+        this.streetinfo1 = streetinfo1;
+        this.streetinfo2 = streetinfo2;
+        this.streetinfo31 = streetinfo31;
+        this.streetinfo32 = streetinfo32;
+        this.streetinfo4 = streetinfo4;
     }
 
     public String getBleMac() {
@@ -56,41 +51,57 @@ public class BLETag {
         this.lon = lon;
     }
 
-    public int getSpeedLimit() {
-        return speedLimit;
+    public String getStreetinfo1() {
+        return streetinfo1;
     }
 
-    public void setSpeedLimit(int speedLimit) {
-        this.speedLimit = speedLimit;
+    public void setStreetinfo1(String streetinfo1) {
+        this.streetinfo1 = streetinfo1;
     }
 
-    public String getMessage() {
-        return message;
+    public String getStreetinfo2() {
+        return streetinfo2;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setStreetinfo2(String streetinfo2) {
+        this.streetinfo2 = streetinfo2;
     }
 
-    public int getFlag() {
-        return flag;
+    public String getStreetinfo31() {
+        return streetinfo31;
     }
 
-    public void setFlag(int flag) {
-        this.flag = flag;
+    public void setStreetinfo31(String streetinfo31) {
+        this.streetinfo31 = streetinfo31;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getStreetinfo32() {
+        return streetinfo32;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setStreetinfo32(String streetinfo32) {
+        this.streetinfo32 = streetinfo32;
     }
+
+    public String getStreetinfo4() {
+        return streetinfo4;
+    }
+
+    public void setStreetinfo4(String streetinfo4) {
+        this.streetinfo4 = streetinfo4;
+    }
+
+    @Override
     public String toString() {
-        return "workzoneID: " + workzoneID + " bleMac: " + bleMac + " lat: "
-                + lat + " lon: " + lon + " speedLimit: " + speedLimit
-                + " message: " + message + " flag: " + flag + " fileName: "
-                + fileName;
+        return "BLETag{" +
+                "bleMac='" + bleMac + '\'' +
+                ", lat=" + lat +
+                ", lon=" + lon +
+                ", streetinfo1='" + streetinfo1 + '\'' +
+                ", streetinfo2='" + streetinfo2 + '\'' +
+                ", streetinfo31='" + streetinfo31 + '\'' +
+                ", streetinfo32='" + streetinfo32 + '\'' +
+                ", streetinfo4='" + streetinfo4 + '\'' +
+                '}';
     }
 }

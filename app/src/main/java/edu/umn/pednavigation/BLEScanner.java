@@ -208,7 +208,8 @@ public class BLEScanner {
         BLETag ble = db.getBleTag(device.getDevice().getAddress());
         if(ble == null)
             return;
-        String msg = ble.getMessage();
+        String msg = "Attention " +ble.getStreetinfo1() +" pedestrians. You are at the "+ble.getStreetinfo2()
+                +". "+ble.getStreetinfo31() +" for " +ble.getStreetinfo32()+". "+ble.getStreetinfo4();
         if (!tts.isSpeaking()) {
             tts.speak(msg, TextToSpeech.QUEUE_FLUSH, null, "" + audiomanager.getStreamVolume(AudioManager.STREAM_MUSIC));
         }

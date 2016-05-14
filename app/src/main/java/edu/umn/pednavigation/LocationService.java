@@ -1,6 +1,7 @@
 package edu.umn.pednavigation;
 
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -12,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 import edu.umn.pednavigation.receiver.AlarmReceiver;
@@ -66,7 +68,16 @@ public class LocationService extends Service {
         handler.postDelayed(r, 3000);
         storeSharedSettings();
         startDataBaseAlarm();
+        startForeground(1, getNotification());
         return START_STICKY;
+    }
+
+    private Notification getNotification() {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.mipmap.ic_stat);
+        builder.setContentTitle("Ped Navigation Service Running");
+        Notification notification = builder.build();
+        return notification;
     }
 
     private void startDataBaseAlarm() {

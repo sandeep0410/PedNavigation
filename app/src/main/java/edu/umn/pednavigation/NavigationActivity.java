@@ -18,6 +18,7 @@
 package edu.umn.pednavigation;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -29,6 +30,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.view.GestureDetector;
@@ -41,6 +43,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -56,14 +59,15 @@ import edu.umn.pednavigation.dto.BLETag;
 
 public class NavigationActivity extends Activity implements SensorEventListener, GestureDetector.OnGestureListener,
         GestureDetector.OnDoubleTapListener {
-    final String[] directions = {"East", "North", "West", "South"};
+    final String[] directions = {"North", "East", "South", "West", "Northeast", "Southeast", "Southwest", "Northwest"};
+    private int SCREEN_TIME_PERIOD = 60;
     double azimuth = 0.0;
     int flag = -1;
     String address = null;
     TextView timer;
     TextView direction;
     RelativeLayout parentlayout;
-    int stopTime = 60;
+    int stopTime = SCREEN_TIME_PERIOD;
     private static NavigationActivity _instance;
     SensorManager sm;
     Sensor accelerometer;
@@ -98,8 +102,16 @@ public class NavigationActivity extends Activity implements SensorEventListener,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LogUtils.log("Oncreate");
-        Intent i = new Intent(this, LocationService.class);
-        startService(i);
+        if (!isMyServiceRunning(LocationService.class)) {
+
+            (new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Intent i = new Intent(getApplicationContext(), LocationService.class);
+                    startService(i);
+                }
+            })).start();
+        }
         setContentView(R.layout.navigation_main);
         TextView mode = (TextView) findViewById(R.id.mode);
         timer = (TextView) findViewById(R.id.timer);
@@ -115,6 +127,7 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        sm.registerListener(this, sm.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_GAME);
         mDetector = new GestureDetector(this, this);
         // Set the gesture detector as the double tap
         // listener.
@@ -141,6 +154,17 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         }
         for (String dir : directions) {
             directionTimer.put(dir, -1);
+        }
+
+        LogUtils.log("Phase Objects");
+        for(Map.Entry entry :directionPhase.entrySet()){
+            LogUtils.log(entry.getKey() + " " + entry.getValue());
+        }
+
+
+        LogUtils.log("Direction Objects");
+        for(Map.Entry entry :directionPhase.entrySet()){
+            LogUtils.log(entry.getKey()+" " +entry.getValue());
         }
 
     }
@@ -193,22 +217,30 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         if (flag == DBUtils.CONS) {
             DBSQLiteHelper db = DBSQLiteHelper.getInstance(this);
             BLETag ble = db.getBleTag(address);
-            speak(ble.getMessage());
+            String msg = "Attention " +ble.getStreetinfo1() +" pedestrians. You are at the "+ble.getStreetinfo2()
+                    +". "+ble.getStreetinfo31() +" for " +ble.getStreetinfo32()+". "+ble.getStreetinfo4();
+            speak(msg);
         } else if (flag == DBUtils.INTX) {
             String curDir = getCurrentDirection();
+            DBSQLiteHelper db = DBSQLiteHelper.getInstance(this);
+            BLEPed ped = db.getBlePed(address);
+            String message = null;
+            if (ped != null)
+                message = getInfoMessage(curDir, ped);
+
             for (Map.Entry entry : directionTimer.entrySet())
                 LogUtils.log("Double click: " + entry.getKey() + ": " + entry.getValue());
-            if (directionTimer.containsKey(curDir)) {
+            if (directionTimer.containsKey(curDir) && message !=null) {
                 int time = directionTimer.get(curDir);
                 if (time < 0)
-                    speak("Please Wait. The walk signal will appear in sometime.");
+                    speak(message + " Please wait for walk signal.");
                 else
-                    speak("Walk signal. Signal turns off in " + time + " seconds");
+                    speak(message + " Walk signal is on. " + time + " seconds left. ");
             } else
-                speak("Please align yourslef and double tap again.");
+                speak("No information. Please turn for data.");
         }
         // LogUtils.log("Single Tap Confirmed " + stopTime);
-        stopTime = 60;
+        stopTime = SCREEN_TIME_PERIOD;
     }
 
     private String getCurrentDirection() {
@@ -253,32 +285,53 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         if (flag == DBUtils.CONS) {
             DBSQLiteHelper db = DBSQLiteHelper.getInstance(this);
             BLETag ble = db.getBleTag(address);
-            speak(ble.getMessage());
+            String msg = "Attention " +ble.getStreetinfo1() +" pedestrians. You are at the "+ble.getStreetinfo2()
+                    +". "+ble.getStreetinfo31() +" for " +ble.getStreetinfo32()+". "+ble.getStreetinfo4();
+            speak(msg);
         } else if (flag == DBUtils.INTX) {
             DBSQLiteHelper db = DBSQLiteHelper.getInstance(this);
             BLEPed ped = db.getBlePed(address);
             if (ped != null) {
                 String dir = getCurrentDirection();
-                if (ped.getD1().equalsIgnoreCase(dir)) {
-                    speak(ped.getStreetinfo1() + " " + ped.getDesc());
-                } else if (ped.getD2().equalsIgnoreCase(dir)) {
-                    speak(ped.getStreetinfo2() + " " + ped.getDesc());
-                } else if (ped.getD3().equalsIgnoreCase(dir)) {
-                    speak(ped.getStreetinfo3() + " " + ped.getDesc());
-                } else if (ped.getD4().equalsIgnoreCase(dir)) {
-                    speak(ped.getStreetinfo4() + " " + ped.getDesc());
-                }
+                String message = getInfoMessage(dir, ped);
+
+                if (message != null)
+                    message = "You are pointing to " + dir + ", " + message;
+                else
+                    message = "No information. Please turn for data.";
+                speak(message);
             }
         }
         // LogUtils.log("Long Tap Confirmed " + stopTime);
-        stopTime = 60;
+        stopTime = SCREEN_TIME_PERIOD;
+    }
+
+    private String getInfoMessage(String dir, BLEPed ped) {
+        if (dir.equalsIgnoreCase(ped.getDirNorth()))
+            return ped.getStreetinfoNorth();
+        else if (dir.equalsIgnoreCase(ped.getDirEast()))
+            return ped.getStreetinfoEast();
+        else if (dir.equalsIgnoreCase(ped.getDirSouth()))
+            return ped.getStreetinfoSouth();
+        else if (dir.equalsIgnoreCase(ped.getDirWest()))
+            return ped.getStreetinfoWest();
+        else if (dir.equalsIgnoreCase(ped.getDirNortheast()))
+            return ped.getStreetinfoNortheast();
+        else if (dir.equalsIgnoreCase(ped.getDirSoutheast()))
+            return ped.getStreetinfoSoutheast();
+        else if (dir.equalsIgnoreCase(ped.getDirSouthwest()))
+            return ped.getStreetinfoSouthwest();
+        else if (dir.equalsIgnoreCase(ped.getDirNorthwest()))
+            return ped.getStreetinfoNorthwest();
+        return null;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        sm.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
+        // sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+        //sm.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);
+        sm.registerListener(this, sm.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
@@ -289,7 +342,9 @@ public class NavigationActivity extends Activity implements SensorEventListener,
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+        int test = Math.round(event.values[0]);
+        // LogUtils.log("angle: " + test);
+ /*       if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
             mGravity = event.values;
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
             mGeomagnetic = event.values;
@@ -305,8 +360,9 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         }
         dirDeg = Math.toDegrees(azimuth);
         if (dirDeg < 0)
-            dirDeg = 360 + dirDeg;
+            dirDeg = 360 + dirDeg;*/
 
+        dirDeg = test;
         direction.setText("Direction: " + (int) dirDeg);
         //LogUtils.log("azimuth is : " + (int) dirDeg);
     }
@@ -425,6 +481,8 @@ public class NavigationActivity extends Activity implements SensorEventListener,
                             new Thread(new StopTimeRunnable(entry.getValue(), entry.getKey())).start();
                         } else {
                             directionTimer.put(entry.getKey(), directionTimer.get(entry.getKey()) - 1);
+                            if (entry.getKey().equals(getCurrentDirection()) && directionTimer.get(entry.getKey()) == 5)
+                                raiseWarning(1000, 5);
                         }
                     }
                 }
@@ -433,7 +491,7 @@ public class NavigationActivity extends Activity implements SensorEventListener,
                     @Override
                     public void run() {
                         String dir = getCurrentDirection();
-                        if (directionTimer.get(dir)!=null && directionTimer.get(dir) != -1)
+                        if (directionTimer.get(dir) != null && directionTimer.get(dir) != -1)
                             parentlayout.setBackgroundColor(getResources().getColor(R.color.green));
                         else
                             parentlayout.setBackgroundColor(getResources().getColor(R.color.red));
@@ -443,6 +501,22 @@ public class NavigationActivity extends Activity implements SensorEventListener,
                     LogUtils.log("Phase direction: " + entry.getKey() + " : " + entry.getValue());
             }
         }
+    }
+
+    private void raiseWarning(int vibrationTime, int signalTime) {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(vibrationTime);
+        switch (signalTime) {
+            case 5:
+                speak("5 seconds left");
+                break;
+            default:
+                speak("Walk sign is on, " + signalTime + " seconds left");
+                SCREEN_TIME_PERIOD = signalTime;
+                stopTime = SCREEN_TIME_PERIOD;
+                break;
+        }
+
     }
 
     @Override
@@ -487,11 +561,23 @@ public class NavigationActivity extends Activity implements SensorEventListener,
                     for (Map.Entry entry : directionTimer.entrySet())
                         LogUtils.log("Thread: " + entry.getKey() + ": " + entry.getValue());
                     System.out.println(data);
+                    if (dir.equalsIgnoreCase(getCurrentDirection()) && Integer.parseInt(data) > 0)
+                        raiseWarning(0, Integer.parseInt(data));
                     urlConnection.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
