@@ -18,12 +18,6 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             serviceLauncher.setAction(LocationService.NotificationConstants.START_SPEED_DETECTION_SERVICE);
             context.startService(serviceLauncher);
 
-        } else {
-            LogUtils.log("Entered receiver");
-            TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            PhoneCallStateListener listener = new PhoneCallStateListener(context);
-            telephony.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
-
         }
 
     }

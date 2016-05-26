@@ -17,7 +17,6 @@ import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 import edu.umn.pednavigation.receiver.AlarmReceiver;
-import edu.umn.pednavigation.settings.Settings;
 
 /**
  * Created by Sandeep on 2/19/2016.
@@ -66,7 +65,7 @@ public class LocationService extends Service {
             }
         };
         handler.postDelayed(r, 3000);
-        storeSharedSettings();
+
         startDataBaseAlarm();
         startForeground(1, getNotification());
         return START_STICKY;
@@ -126,19 +125,6 @@ public class LocationService extends Service {
         LogUtils.log("in on create..3");
     }
 
-
-    private void storeSharedSettings() {
-        SharedPreferences prefs = this.getSharedPreferences(
-                "edu.umn.pednavigation", Context.MODE_PRIVATE);
-        Settings.vibration = prefs.getBoolean(Settings.VIBRATION, false);
-        Settings.alarm = prefs.getBoolean(Settings.ALARM, true);
-        Settings.data_collection = prefs.getBoolean(Settings.DATA_COLLECTION, true);
-        Settings.display_alert = prefs.getBoolean(Settings.DISPLAY_ALERT, true);
-        Settings.enable_calls = prefs.getBoolean(Settings.ENABLE_CALLS, false);
-        Settings.rssi_value = prefs.getInt(Settings.RSSI_VALUE, 128);
-        Settings.scan_Time = prefs.getInt(Settings.SCAN_TIME, 100);
-        Settings.overspeed_block = prefs.getBoolean(Settings.OVERSPEED_BLOCK, false);
-    }
 
     private class myLocationListener implements LocationListener {
 

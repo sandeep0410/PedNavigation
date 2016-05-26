@@ -92,7 +92,7 @@ public class DbDownloader extends Thread {
                     if (null != blephase) {
                         db.deleteAll(table);
                         LogUtils.log("BTprinting after first delete");
-                        printFlagData(db);
+                        printPhaseData(db);
                         for (BLEPhase bt : blephase) {
                             db.addBLEPhaseData(bt);
                         }

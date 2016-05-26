@@ -300,7 +300,7 @@ public class DBSQLiteHelper extends SQLiteOpenHelper {
             do {
                 bt = new BLEFlag("", -1);
                 bt.setMac(cursor.getString(1));
-                bt.setFlag(Integer.parseInt(cursor.getString(2)));
+                bt.setFlag(cursor.getInt(2));
             } while (cursor.moveToNext());
         }
         LogUtils.log("printing after query: " + bt);

@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -28,7 +29,6 @@ import edu.umn.pednavigation.db.DBUtils;
 import edu.umn.pednavigation.dto.BLEFlag;
 import edu.umn.pednavigation.dto.BLETag;
 import edu.umn.pednavigation.dto.BluetoothDeviceObject;
-import edu.umn.pednavigation.settings.Settings;
 
 /**
  * Created by Sandeep on 12/24/2015.
@@ -39,6 +39,7 @@ public class BLEScanner {
     private static final int STOP_SCANNING = 1001;
     private static final long SCAN_PERIOD = 100000;
     private static final int REQUEST_ENABLE_BT = 1;
+    private static final int RSSI =128;
     private static BLEScanner _instance;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mScanner;
@@ -62,6 +63,7 @@ public class BLEScanner {
     };
 
     private void analyzeDevice() {
+        LogUtils.log("Analyzing device");
         scanning = false;
         StopScanForLatestAndroid();
         BluetoothDeviceObject device = null;
@@ -79,6 +81,8 @@ public class BLEScanner {
             Intent i = new Intent(mContext, NavigationActivity.class);
             i.putExtra("bleAddress", device.getDevice().getAddress());
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Log.d("sandeep", "flag: " + ble.getFlag());
+           Log.d("sandeep", "address: " + device.getDevice().getAddress());
             if (ble.getFlag() == DBUtils.CONS) {
                 speak(device);
                 i.putExtra("flag", DBUtils.CONS);
@@ -178,13 +182,13 @@ public class BLEScanner {
                 int rssi = result.getRssi();
                 if (device == null)
                     return;
-                if (rssi < (-1 * Settings.rssi_value))
+                if (rssi < (-1 * RSSI))
                     return;
-                if (null == device.getName() || !device.getName().startsWith("MTO"))
+                if (null == device.getName() || (!device.getName().startsWith("MTO")&& !device.getName().startsWith("mto")))
                     return;
                 scannedDevices.put(device.getName(), new BluetoothDeviceObject(device, rssi));
                 if (stopper == null) {
-                    new Thread(new Runnable() {
+                    (new Thread(new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -194,7 +198,7 @@ public class BLEScanner {
                             }
                             messageHandler.sendEmptyMessage(STOP_SCANNING);
                         }
-                    }).start();
+                    })).start();
                 }
 
             }
