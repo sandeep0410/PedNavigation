@@ -43,7 +43,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -61,7 +60,6 @@ public class NavigationActivity extends Activity implements SensorEventListener,
         GestureDetector.OnDoubleTapListener {
     final String[] directions = {"North", "East", "South", "West", "Northeast", "Southeast", "Southwest", "Northwest"};
     private int SCREEN_TIME_PERIOD = 60;
-    double azimuth = 0.0;
     int flag = -1;
     String address = null;
     TextView timer;
@@ -232,7 +230,9 @@ public class NavigationActivity extends Activity implements SensorEventListener,
                 LogUtils.log("Double click: " + entry.getKey() + ": " + entry.getValue());
             if (directionTimer.containsKey(curDir) && message !=null) {
                 int time = directionTimer.get(curDir);
-                if (time < 0)
+                if(directionPhase.containsKey(curDir) && directionPhase.get(curDir) == -1) {
+                    speak(message);
+                }else if (time < 0)
                     speak(message + " Please wait for walk signal.");
                 else
                     speak(message + " Walk signal is on. " + time + " seconds left. ");
@@ -246,40 +246,6 @@ public class NavigationActivity extends Activity implements SensorEventListener,
     private String getCurrentDirection() {
         return Util.getDir((int) dirDeg);
     }
-
-/*    private void checkTheSignalState() {
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String url = "http://128.101.111.92:8080/Pedestrian/pedestrian?table=get_signal_state&intx_id=9999&phase=4";
-                HttpURLConnection urlConnection = null;
-                try {
-                    urlConnection = (HttpURLConnection) new URL(url.toString()).openConnection();
-                    urlConnection.setConnectTimeout(5000);
-                    System.out.println((urlConnection.toString()));
-                    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                    /*/
-
-    /**
-     * *****Reading Response From Server********
-     * BufferedReader r = new BufferedReader(new InputStreamReader(in));
-     * StringBuilder sb = new StringBuilder();
-     * String line;
-     * while ((line = r.readLine()) != null) {
-     * sb.append(line);
-     * }
-     * String data = sb.toString();
-     * System.out.println(data);
-     * urlConnection.disconnect();
-     * } catch (IOException e) {
-     * e.printStackTrace();
-     * }
-     * <p>
-     * }
-     * });
-     * t.start();
-     * }
-     */
 
     private void performSingleClick() {
         if (flag == DBUtils.CONS) {
